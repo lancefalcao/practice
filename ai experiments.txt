@@ -1,0 +1,418 @@
+EXp 2 (Vaccume cleaner):
+def clean_vacuum_world():
+    loc = input("Start (A/B): ").upper()
+    env = {
+        'A': input("Is A Dirty? (1=Yes, 0=No): "),
+        'B': input("Is B Dirty? (1=Yes, 0=No): ")
+    }
+
+    cost = 0
+
+    while env['A'] == '1' or env['B'] == '1':
+        print(f"At {loc} | State: {env}")
+
+        if env[loc] == '1':
+            env[loc] = '0'
+            print(f"  Action: SUCK (Cleaned {loc})")
+            cost += 1
+
+        elif loc == 'A':
+            loc = 'B'
+            print("  Action: RIGHT")
+
+        elif loc == 'B':
+            loc = 'A'
+            print("  Action: LEFT")
+
+    print(f"\nResult: All Clean! Total Cost: {cost}")
+
+
+if __name__ == "__main__":
+    clean_vacuum_world()
+
+
+
+
+
+
+
+Exp 3: (Prolog):
+
+family.pl
+
+% --- Facts ---
+father(john, vincent).
+father(john, michael).
+father(vincent, shervin).
+father(vincent, virat).
+father(michael, swapnil).
+father(michael, eloine).
+
+mother(kusum, vincent).
+mother(kusum, michael).
+mother(shilpa, shervin).
+mother(shilpa, virat).
+mother(carel, swapnil).
+mother(carel, eloine).
+
+male(john).
+male(vincent).
+male(michael).
+male(shervin).
+male(virat).
+male(swapnil).
+
+female(kusum).
+female(shilpa).
+female(carel).
+female(eloine).
+
+% --- Rules ---
+parent(X, Y) :- father(X, Y).
+parent(X, Y) :- mother(X, Y).
+
+sibling(X, Y) :- 
+    parent(P, X), 
+    parent(P, Y), 
+    X \= Y.
+
+brother(X, Y) :- sibling(X, Y), male(X).
+sister(X, Y) :- sibling(X, Y), female(X).
+
+grandfather(X, Z) :- father(X, Y), parent(Y, Z).
+grandmother(X, Z) :- mother(X, Y), parent(Y, Z).
+
+uncle(X, Z) :- brother(X, Y), parent(Y, Z).
+aunt(X, Z) :- sister(X, Y), parent(Y, Z).
+
+cousin(X, Y) :- 
+    parent(P1, X), 
+    parent(P2, Y), 
+    sibling(P1, P2).
+
+
+to run:
+change_directory('C:/Users/10csh/OneDrive/Desktop/').
+[family].
+grandfather(X, shervin).
+
+
+
+
+
+
+
+Exp4: (BFS DFS):
+def bfs(matrix, start_node, goal_node, num_vertices):
+    visited = {start_node}
+    queue = [start_node]
+
+    print(f"BFS Path: ", end="")
+
+    while queue:
+        current_node = queue.pop(0)
+        print(current_node, end=" ")
+
+        # --- Check if we reached the goal ---
+        if current_node == goal_node:
+            print("\nResult: Goal reached!")
+            return # Stop the function
+
+        for neighbor in range(num_vertices):
+            # If edge exists (1) and neighbor not visited
+            if matrix[current_node][neighbor] and neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+
+    # If queue is empty and goal wasn't found
+    print("\nResult: Goal not found.")
+
+def dfs(matrix, current_node, goal_node, num_vertices, visited=None):
+    if visited is None:
+        visited = set()
+        print("DFS Path:", end=" ")
+
+    visited.add(current_node)
+    print(current_node, end=" ")
+
+    # --- Check if we reached the goal ---
+    if current_node == goal_node:
+        print("\nResult: Goal reached!")
+        return True # Return True to signal success
+
+    for neighbor in range(num_vertices):
+        # If edge exists (1) and neighbor not visited
+        if matrix[current_node][neighbor] and neighbor not in visited:
+            # Recursively call DFS. If it returns True, stop checking other neighbors.
+            if dfs(matrix, neighbor, goal_node, num_vertices, visited):
+                return True
+                
+    return False
+
+# --- Driver Code ---
+num_vertices = int(input("Enter number of vertices: "))
+
+print("Enter Adjacency Matrix (row by row):")
+# Reads the matrix in one line per row
+matrix = [list(map(int, input().split())) for _ in range(num_vertices)]
+
+start_node = int(input("Enter Start Node: "))
+goal_node = int(input("Enter Goal Node: ")) # Asking for goal
+
+print("-" * 20)
+bfs(matrix, start_node, goal_node, num_vertices)
+
+print("-" * 20)
+# Note: reset visited handled inside function logic or by creating new set internally
+dfs(matrix, start_node, goal_node, num_vertices)
+print()
+
+
+
+
+
+
+
+
+
+Ai exp 5 (8-puzzele using A*:
+
+import heapq
+
+def manhattan(state, goal):
+    return sum(abs(i // 3 - goal.index(v) // 3) + abs(i % 3 - goal.index(v) % 3)
+               
+               for i, v in enumerate(state) if v != 'B')
+
+def get_children(state):
+    b = state.index('B')
+    # Valid moves: Up (-3), Down (+3), Left (-1), Right (+1)
+    moves = [m for m in (-3, 3, -1, 1) if 0 <= b + m < 9 and not (b % 3 == 0 and m == -1) and not (b % 3 == 2 and m == 1)]
+    for m in moves:
+        s = list(state)
+        s[b], s[b+m] = s[b+m], s[b]
+        yield tuple(s)
+
+def solve(start, goal):
+    # Priority Queue stores: (f_score, g_score, state)
+    pq = [(manhattan(start, goal), 0, start)]
+    came_from = {start: None}
+    g_score = {start: 0}
+
+    while pq:
+        _, g, curr = heapq.heappop(pq)
+
+        if curr == goal:
+            path = []
+            while curr:
+                path.append(curr)
+                curr = came_from[curr]
+            return path[::-1]
+
+        for child in get_children(curr):
+            new_g = g + 1
+            if child not in g_score or new_g < g_score[child]:
+                g_score[child] = new_g
+                came_from[child] = curr
+                heapq.heappush(pq, (new_g + manhattan(child, goal), new_g, child))
+                
+    return None
+
+def get_input(prompt):
+    print(prompt)
+    print("Enter the 3x3 grid row by row (use spaces between tiles, 'B' for blank):")
+    # Loops 3 times to grab all 3 lines of input and flattens them into one tuple
+    return tuple(x for _ in range(3) for x in input().split())
+
+if __name__ == "__main__":
+    print("--- A* 8-Puzzle Solver ---")
+    start = get_input("--- INITIAL STATE ---")
+    goal = get_input("\n--- GOAL STATE ---")
+    
+    print("\nSolving...")
+    path = solve(start, goal)
+    
+    if not path:
+        print("No solution exists.")
+    else:
+        print(f"\nSolution found in {len(path) - 1} moves!\n")
+        for step_num, step in enumerate(path):
+            print(f"STEP {step_num}")
+            print("-" * 20)
+            print(f" {step[0]} {step[1]} {step[2]} ")
+            print(f" {step[3]} {step[4]} {step[5]} ")
+            print(f" {step[6]} {step[7]} {step[8]} \n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Exp 6:To implement a program on Adversarial Search using Tic Tac Toe Application.
+
+def print_board(b):
+    print("\n")
+    for i in range(0, 9, 3):
+        print(f" {b[i]} | {b[i+1]} | {b[i+2]} ")
+        if i < 6: print("---|---|---")
+    print("\n")
+
+def get_score(b):
+    # Check all 8 winning lines. Returns 10 if X wins, -10 if O wins, 0 otherwise.
+    for x, y, z in [(0,1,2), (3,4,5), (6,7,8), (0,3,6), (1,4,7), (2,5,8), (0,4,8), (2,4,6)]:
+        if b[x] == b[y] == b[z] != ' ':
+            return 10 if b[x] == 'X' else -10
+    return 0
+
+def minimax(b, depth, is_max):
+    score = get_score(b)
+    if score != 0: return score - depth if score == 10 else score + depth
+    if ' ' not in b: return 0
+
+    # Create new board states on the fly (avoids needing to manually backtrack)
+    if is_max:
+        return max(minimax(b[:i] + ['X'] + b[i+1:], depth + 1, False) for i in range(9) if b[i] == ' ')
+    else:
+        return min(minimax(b[:i] + ['O'] + b[i+1:], depth + 1, True) for i in range(9) if b[i] == ' ')
+
+def play_game():
+    b = [' '] * 9
+    print("Welcome to Tic-Tac-Toe using Minimax!")
+    print("Positions are 0-8, corresponding to the board from top-left to bottom-right.")
+    print_board([str(i) for i in range(9)])
+
+    while True:
+        try:
+            m = int(input("Enter your move (0-8): "))
+            if b[m] != ' ':
+                print("Spot already taken! Try again.")
+                continue
+        except (ValueError, IndexError):
+            print("Invalid input! Please enter a number between 0 and 8.")
+            continue
+
+        b[m] = 'O'
+        print_board(b)
+
+        if get_score(b) == -10:
+            print("Human (O) wins! (Wait, this shouldn't happen against Minimax...)")
+            break
+        if ' ' not in b:
+            print("It's a Draw!")
+            break
+
+        print("AI (X) is making a move...")
+        # Sorts valid moves by their minimax score and picks the index of the best one
+        b[max((minimax(b[:i] + ['X'] + b[i+1:], 0, False), i) for i in range(9) if b[i] == ' ')[1]] = 'X'
+        print_board(b)
+
+        if get_score(b) == 10:
+            print("AI (X) wins!")
+            break
+        if ' ' not in b:
+            print("It's a Draw!")
+            break
+
+if __name__ == "__main__":
+    play_game()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Exp 7: Implementation of Bayes Belief Network 
+import math
+from itertools import product
+
+def solve():
+    net = {}
+    for _ in range(int(input("Enter number of variables: "))):
+        node = input("Enter node name: ").strip()
+        p_str = input(f"Enter parents of {node} (comma separated, or 'none'): ").strip()
+        # Stores graph as -> node: (parents_tuple, cpt_dictionary)
+        net[node] = ((), {}) if p_str.lower() in ('none', '') else (tuple(p.strip() for p in p_str.split(',')), {})
+
+    for node, (parents, cpt) in net.items():
+        print(f"\nEnter CPT for {node}:" + (f"\nParents: {', '.join(parents)}" if parents else ""))
+        # product() with repeat=0 yields (), perfectly handling nodes without parents naturally!
+        for c in product([True, False], repeat=len(parents)):
+            c_str = f" | {', '.join(f'{p}={v}' for p, v in zip(parents, c))}" if parents else ""
+            cpt[c] = float(input(f"P({node}=True{c_str}): "))
+
+    print("\n--- QUERY ---")
+    ev = {input("Enter query variable: ").strip(): input("Value (True/False): ").strip().lower() == "true"}
+    for _ in range(int(input("Enter number of evidence variables: "))):
+        ev[input("Evidence variable: ").strip()] = input("Value (True/False): ").strip().lower() == "true"
+
+    hidden = [v for v in net if v not in ev]
+    
+    # Marginalize over hidden variables by calculating and summing their joint probabilities
+    result = sum(
+        math.prod(cpt[tuple(a[p] for p in parents)] if a[n] else 1 - cpt[tuple(a[p] for p in parents)]
+                  for n, (parents, cpt) in net.items())
+        for vals in product([True, False], repeat=len(hidden))
+        for a in [{**ev, **dict(zip(hidden, vals))}]  # Inline full assignment mapping
+    )
+
+    q_n, q_v = list(ev.items())[0]
+    print(f"\nJoint Probability: P({q_n}={q_v}, evidence) = {result:.10f}")
+
+if __name__ == "__main__":
+    solve()
+
+
+
+
+
+Exp 8:Implementation of Partial Order Planning for the Block World Problem
+def solve():
+    curr = [x.strip() for x in input("Enter initial state (comma separated, e.g. A-table,B-A): ").split(",")]
+    goals = [x.strip() for x in input("Enter goal state (comma separated, e.g. C-B,A-C): ").split(",")]
+    plan = ["Start"]
+    
+    print(f"\nInitial State: {curr}\nGoal State: {goals}")
+    
+    # Filters out already-achieved goals and automatically tracks the step number starting at 1
+    for step, g in enumerate([x for x in goals if x not in curr], 1):
+        print(f"\nStep {step} : Achieving goal -> {g}")
+        b, p = g.split("-")
+        
+        action = f"Put {b} on table" if p.lower() == "table" else f"Stack {b} on {p}"
+        
+        # Kept your original quirk where it only announces the action if it's a Stack!
+        if p.lower() != "table": 
+            print("Action added to plan:", action)
+        
+        plan.append(action)
+        curr.append(g)
+        print("Current State:", curr)
+        
+    print("\nFinal Plan:\n" + "\n".join(plan + ["Finish"]))
+
+if __name__ == "__main__":
+    solve()
+
