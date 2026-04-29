@@ -1,0 +1,59 @@
+% --- Facts for Male ---
+male(peter).
+male(nelson).
+male(neil).
+male(milton).
+male(sohan).
+male(benhur).
+male(lance).
+male(owen).
+
+% --- Facts for Female ---
+female(ruby).
+female(lily).
+female(rupum).
+female(libnetta).
+female(nelitta).
+female(nicole).
+female(skynah).
+
+% --- Facts for Father ---
+father(peter, rupum).
+father(peter, milton).
+father(nelson, libnetta).
+father(nelson, nelitta).
+father(neil, benhur).
+father(neil, nicole).
+father(milton, lance).
+father(milton, owen).
+father(sohan, skynah).
+
+% --- Facts for Mother ---
+mother(ruby, rupum).
+mother(ruby, milton).
+mother(lily, libnetta).
+mother(lily, nelitta).
+mother(rupum, benhur).
+mother(rupum, nicole).
+mother(libnetta, lance).
+mother(libnetta, owen).
+mother(nelitta, skynah).
+% Rules
+parent(F, M, C) :- father(F, C), mother(M, C).
+
+grandfather(GF, C) :- father(GF, F), father(F, C); 
+father(GF, M), mother(M, C).
+
+grandmother(GM, C) :- mother(GM, P), (father(P, C); mother(P, C)).
+
+siblings(X, Y) :- father(F, X), father(F, Y), mother(M, X), mother(M, Y), X \= Y.
+
+brother(X, Y) :- male(X), siblings(X, Y).
+
+sister(X, Y) :- female(X), siblings(X, Y).
+
+uncle(U, C) :- male(U), siblings(U, P), (father(P, C); mother(P, C)).
+
+aunt(A, C) :- female(A), siblings(A, P), (father(P, C); mother(P, C)).
+
+cousin(X, Y) :- (father(P1, X); mother(P1, X)),  (father(P2, Y); mother(P2, Y)),  siblings(P1, P2).
